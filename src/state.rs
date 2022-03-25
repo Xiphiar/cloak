@@ -1,18 +1,14 @@
-use std::any::type_name;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::any::type_name;
 
-use secret_toolkit::{
-    serialization::{Bincode2, Serde},
-};
-
+use secret_toolkit::serialization::{Bincode2, Serde};
 
 use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdError, StdResult, Storage, Uint128};
 //use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 
 pub static CONFIG_KEY: &[u8] = b"config";
 pub static POOL_SIZE_KEY: &[u8] = b"poolsize";
-
 
 pub static PRNG_SEED_KEY: &[u8] = b"prng";
 
@@ -30,21 +26,16 @@ pub struct Config {
     // Marks whether txs are allowed to be sent
     pub active: bool,
 
-
-
     // Minimum amount of funds that can be sent through the contract
     pub fee: Uint128,
     pub op_share: Uint128,
-
-
 }
 
 /// Pair of the recipient address and the gas amount they are sending
 #[derive(Serialize, Deserialize, Clone, JsonSchema, PartialEq, Debug)]
-pub struct  Pair {
-    pub gas: u128
+pub struct Pair {
+    pub gas: u128,
 }
-
 
 /// Returns StdResult<T> from retrieving the item with the specified key.  Returns a
 /// StdError::NotFound if there is no item with that key
@@ -60,7 +51,6 @@ pub fn load<T: DeserializeOwned, S: ReadonlyStorage>(storage: &S, key: &[u8]) ->
             .ok_or_else(|| StdError::not_found(type_name::<T>()))?,
     )
 }
-
 
 /// Returns StdResult<Option<T>> from retrieving the item with the specified key.
 /// Returns Ok(None) if there is no item with that key
@@ -79,7 +69,6 @@ pub fn may_load<T: DeserializeOwned, S: ReadonlyStorage>(
     }
 }
 
-
 /// Returns StdResult<()> resulting from saving an item to storage
 ///
 /// # Arguments
@@ -91,8 +80,6 @@ pub fn save<T: Serialize, S: Storage>(storage: &mut S, key: &[u8], value: &T) ->
     storage.set(key, &Bincode2::serialize(value)?);
     Ok(())
 }
-
-
 
 /// Removes an item from storage
 ///
