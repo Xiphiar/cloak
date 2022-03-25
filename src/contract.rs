@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    from_binary, log, to_binary, Api, BankMsg, Binary, CanonicalAddr, Coin, CosmosMsg, Env, Extern,
+    from_binary, log, to_binary, Api, BankMsg, Binary, Coin, CosmosMsg, Env, Extern,
     HandleResponse, HandleResult, HumanAddr, InitResponse, Querier, StdError, StdResult, Storage,
     Uint128,
 };
@@ -165,7 +165,7 @@ pub fn seed_wallet<S: Storage, A: Api, Q: Querier>(
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
     let snip20_address: HumanAddr = load(&deps.storage, SNIP20_ADDRESS_KEY)?;
-    let callback_code_hash: String = load(&deps.storage, &SNIP20_HASH_KEY)?;
+    let callback_code_hash: String = load(&deps.storage, SNIP20_HASH_KEY)?;
 
     let padding: Option<String> = None;
 
@@ -198,7 +198,7 @@ pub fn seed_wallet<S: Storage, A: Api, Q: Querier>(
     }];
 
     let cosmos_msg = CosmosMsg::Bank(BankMsg::Send {
-        from_address: env.contract.address.clone(),
+        from_address: env.contract.address,
         to_address: deps.api.human_address(&config.operator)?,
         amount: withdrawal_coins,
     });
@@ -218,7 +218,7 @@ pub fn seed_wallet<S: Storage, A: Api, Q: Querier>(
 
     // Adjust pool size
     let mut pool_size: u16 = load(&deps.storage, POOL_SIZE_KEY)?;
-    pool_size = pool_size + 1;
+    pool_size += 1;
     save(&mut deps.storage, POOL_SIZE_KEY, &pool_size)?;
 
     Ok(HandleResponse {
@@ -257,7 +257,7 @@ pub fn finalize_seed<S: Storage, A: Api, Q: Querier>(
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
     let snip20_address: HumanAddr = load(&deps.storage, SNIP20_ADDRESS_KEY)?;
-    let callback_code_hash: String = load(&deps.storage, &SNIP20_HASH_KEY)?;
+    let callback_code_hash: String = load(&deps.storage, SNIP20_HASH_KEY)?;
 
     let padding: Option<String> = None;
 
@@ -276,7 +276,7 @@ pub fn finalize_seed<S: Storage, A: Api, Q: Querier>(
     }];
 
     let cosmos_msg = CosmosMsg::Bank(BankMsg::Send {
-        from_address: env.contract.address.clone(),
+        from_address: env.contract.address,
         to_address: sender,
         amount: withdrawal_coins,
     });
@@ -286,7 +286,7 @@ pub fn finalize_seed<S: Storage, A: Api, Q: Querier>(
 
     // Adjust pool size
     let mut pool_size: u16 = load(&deps.storage, POOL_SIZE_KEY)?;
-    pool_size = pool_size - 1;
+    pool_size -= 1;
     save(&mut deps.storage, POOL_SIZE_KEY, &pool_size)?;
 
     Ok(HandleResponse {
@@ -321,7 +321,7 @@ pub fn exit_pool<S: Storage, A: Api, Q: Querier>(
     let amount = Uint128::from(tx_data.gas);
     let recipient: HumanAddr = env.message.sender;
     let cosmos_msg = transfer_msg(
-        recipient.clone(),
+        recipient,
         amount,
         padding,
         BLOCK_SIZE,
@@ -334,7 +334,7 @@ pub fn exit_pool<S: Storage, A: Api, Q: Querier>(
 
     // Adjust pool size
     let mut pool_size: u16 = load(&deps.storage, POOL_SIZE_KEY)?;
-    pool_size = pool_size - 1;
+    pool_size -= 1;
     save(&mut deps.storage, POOL_SIZE_KEY, &pool_size)?;
 
     Ok(HandleResponse {
@@ -350,7 +350,7 @@ pub fn new_entropy(env: &Env, seed: &[u8], entropy: &[u8]) -> [u8; 32] {
     let mut rng_entropy = Vec::with_capacity(entropy_len);
     rng_entropy.extend_from_slice(&env.block.height.to_be_bytes());
     rng_entropy.extend_from_slice(&env.block.time.to_be_bytes());
-    rng_entropy.extend_from_slice(&env.message.sender.0.as_bytes());
+    rng_entropy.extend_from_slice(env.message.sender.0.as_bytes());
     rng_entropy.extend_from_slice(entropy);
 
     let mut rng = Prng::new(seed, &rng_entropy);
