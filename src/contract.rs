@@ -142,7 +142,7 @@ pub fn seed_wallet<S: Storage, A: Api, Q: Querier>(
     }
 
     //Generate exit key
-    let prng_seed: Vec<u8> = load(&mut deps.storage, PRNG_SEED_KEY)?;
+    let prng_seed: Vec<u8> = load(mut deps.storage, PRNG_SEED_KEY)?;
 
     //Stored Entropy
     let new_data: String = format!(
@@ -245,14 +245,13 @@ pub fn finalize_seed<S: Storage, A: Api, Q: Querier>(
     }
 
     let tx_data_wrapped: Option<Pair> = may_load(&deps.storage, tx_key.as_bytes())?;
-    let tx_data: Pair;
-    if tx_data_wrapped == None {
+    let tx_data: Pair = if tx_data_wrapped == None {
         return Err(StdError::generic_err(
             "There are no pending transactions with this key.",
         ));
     } else {
-        tx_data = tx_data_wrapped.unwrap();
-    }
+        tx_data_wrapped.unwrap()
+    };
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -302,14 +301,13 @@ pub fn exit_pool<S: Storage, A: Api, Q: Querier>(
     tx_key: String,
 ) -> StdResult<HandleResponse> {
     let tx_data_wrapped: Option<Pair> = may_load(&deps.storage, tx_key.as_bytes())?;
-    let tx_data: Pair;
-    if tx_data_wrapped == None {
+    let tx_data: Pair = iif tx_data_wrapped == None {
         return Err(StdError::generic_err(
             "There are no pending transactions with this key.",
         ));
     } else {
-        tx_data = tx_data_wrapped.unwrap();
-    }
+        tx_data_wrapped.unwrap()
+    };
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
@@ -457,14 +455,12 @@ fn query_tx_exists<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     tx_key: String,
 ) -> StdResult<ExistsResponse> {
-    let exists: bool;
-
     let tx_data_wrapped: Option<Pair> = may_load(&deps.storage, tx_key.as_bytes())?;
-    if tx_data_wrapped == None {
-        exists = false;
+    let exists: bool = if tx_data_wrapped == None {
+        false;
     } else {
-        exists = true;
-    }
+        true;
+    };
 
     Ok(ExistsResponse { exists })
 }
